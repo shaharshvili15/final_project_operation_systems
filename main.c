@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
-#include "./plugins/plugin_sdk.h"
-
+#include <string.h>
 
 typedef const char* (*plugin_init_func_t)(int);
 typedef const char* (*plugin_place_work_func_t)(const char*);
@@ -39,6 +38,7 @@ void print_helper(){
 
 }
 int main(int argc, char* argv[]){
+    printf("hi0");
     if(argc < 2){
         fprintf(stderr, "No arguments were send\n");
         print_helper();
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]){
     plugin_handle_t plugins[pluginCount];
     //construct the filename by appending .so
     for(int i = 2; i<argc; i++){
-        char fileName[256];  
+        char fileName[256];
         snprintf(fileName, sizeof(fileName), "%s.so", argv[i]);
         void* handle = dlopen(fileName,RTLD_NOW | RTLD_LOCAL);
         plugin_init_func_t init = (plugin_init_func_t)dlsym(handle, "plugin_init");

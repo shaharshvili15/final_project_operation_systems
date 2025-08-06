@@ -12,11 +12,9 @@ const char* plugin_transform(const char* input){
         result[i] = toupper((unsigned char)input[i]);
     }
     result[strlen(input)] ='\0';
-    free((void*)input);
     return result;
 }
 
-__attribute__((visibility("default")))
-const char* plugin_init(int queue_size){
+const char* plugin_init(int queue_size) {
     return common_plugin_init(plugin_transform, "uppercaser", queue_size);
 }

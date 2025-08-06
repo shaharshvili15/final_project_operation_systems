@@ -14,9 +14,9 @@ for plugin in $PLUGINS; do
     gcc -fPIC -shared -o output/${plugin}.so \
         plugins/${plugin}.c \
         plugins/plugin_common.c \
+        plugins/sync/consumer_producer.c\
         plugins/sync/monitor.c \
-        plugins/sync/consumer_producer.c \
-        -ldl -lpthread
+        -Iplugins -Iplugins/sync -lpthread
 done
 
 echo "[BUILD] Done."
