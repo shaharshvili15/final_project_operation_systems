@@ -43,31 +43,50 @@ const char* common_plugin_init(const char* (*process_function)(const char*),cons
 }
 
 void* plugin_consumer_thread(void* arg){
+    plugin_context_t* ctx = (plugin_context_t*)arg;
     while(1){
-        plugin_context_t* ctx = (plugin_context_t*)arg;
         char* result = consumer_producer_get(ctx->queue);
-        if(result == NULL){
+        if(result == NULL){ //CHECK IF GOT NULL
+            break;
+        }
+        char msg[256];
+        snprintf(msg, sizeof(msg), "got item: %s", result);
+        log_info(ctx, msg);
+        if(strcmp(result,"<END>") == 0){ //CHECK IF GOT <END> AND NEED TO FINISH
+            if (ctx->next_place_work != NULL) {
+                ctx->next_place_work(strdup("<END>"));
+            }
+            free(result);
+            consumer_producer_signal_finished(ctx->queue);
             break;
         }
         const char* transformedText = ctx->process_function(result);
+        snprintf(msg, sizeof(msg), "transformed result: %s", transformedText);
+        log_info(ctx, msg);
         if(ctx->next_place_work != NULL){
+            snprintf(msg, sizeof(msg), "forwarding: %s", transformedText);
+            log_info(ctx, msg);
             ctx->next_place_work(transformedText);
         }
         else{
+            log_info(ctx, "no next plugin — freeing output");
             free((void*)transformedText);
         }
         free(result);
     }
-    context.finished = 1;
+    log_info(ctx, "plugin thread finished");
+    ctx->finished = 1;
     return NULL; 
 }
 
 void log_error(plugin_context_t* context, const char* message) {
     fprintf(stderr, "%s[ERROR][%s] - %s%s\n", RED, context->name, message, NC);
+    fflush(stdout);
 }
 
 void log_info(plugin_context_t* context, const char* message) {
     printf("%s[INFO][%s] - %s%s\n", GREEN, context->name, message, NC);
+    fflush(stdout);
 }
 
 const char* plugin_get_name(void){

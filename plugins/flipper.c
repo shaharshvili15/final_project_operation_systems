@@ -9,7 +9,6 @@ const char* plugin_transform(const char* input){
         result[i] = (unsigned char)input[strlen(input)-1-i];
     }
     result[strlen(input)] ='\0';
-    free((void*)input);
     return result;
 }
 

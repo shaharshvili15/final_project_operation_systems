@@ -9,10 +9,7 @@ const char* plugin_transform(const char* input) {
 
     printf("[logger] %s\n", input);
     fflush(stdout); 
-
-    char* result = strdup(input);
-    free((void*)input);
-    return result;
+    return strdup(input);
 }
 __attribute__((visibility("default")))
 const char* plugin_init(int queue_size) {

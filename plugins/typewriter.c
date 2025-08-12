@@ -16,7 +16,6 @@ const char* plugin_transform(const char* input) {
     printf("\n");
     fflush(stdout);
     char* result = strdup(input);
-    free((void*)input);
     return result;
 }
 __attribute__((visibility("default")))

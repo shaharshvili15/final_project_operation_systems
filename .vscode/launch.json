@@ -2,42 +2,38 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug test_runner",
+      "name": "Debug test_runner (WSL)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/test_runner",
       "args": [],
-      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
       "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
+      "miDebuggerPath": "/usr/bin/gdb",
+      "externalConsole": false,
+      "environment": [
+        { "name": "LD_LIBRARY_PATH", "value": "${workspaceFolder}/output" }
       ],
-      "miDebuggerPath": "/usr/bin/gdb"
+      "setupCommands": [
+        { "description": "Enable pretty-printing for gdb", "text": "-enable-pretty-printing", "ignoreFailures": true }
+      ]
     },
     {
-      "name": "Debug analyzer",
+      "name": "Debug analyzer (WSL)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/output/analyzer",
-      "args": ["10", "uppercaser", "logger"],
-      "stopAtEntry": false,
+      "args": ["10", "${workspaceFolder}/output/uppercaser","${workspaceFolder}/output/logger","${workspaceFolder}/output/rotator","${workspaceFolder}/output/uppercaser", "${workspaceFolder}/output/logger"],
       "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
       "MIMode": "gdb",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "externalConsole": false,  // ← opens WSL terminal when running inside WSL
+      "environment": [],
+      "console": "integratedTerminal",
       "setupCommands": [
-        {
-          "description": "Enable pretty printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
+        { "text": "set breakpoint pending on" },
+        { "text": "set auto-solib-add on" },
+        { "text": "sharedlibrary" }
       ]
     }
   ]

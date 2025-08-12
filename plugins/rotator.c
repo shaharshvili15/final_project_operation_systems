@@ -10,7 +10,6 @@ const char* plugin_transform(const char* input){
         result[i+1] = input[i];
     }
     result[len] ='\0';
-    free((void*)input);
     return result;
 }
 

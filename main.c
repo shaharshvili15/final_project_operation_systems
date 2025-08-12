@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <string.h>
+#include <unistd.h>
 
 typedef const char* (*plugin_init_func_t)(int);
 typedef const char* (*plugin_place_work_func_t)(const char*);
@@ -105,9 +106,18 @@ int main(int argc, char* argv[]){
     for(int i= 0; i<pluginCount-1;i++){
         plugins[i].attach(plugins[i+1].place_work);
     }
+    FILE *in = stdin;
+    // If stdin is *not* a terminal (e.g., VS Code launch gave you nothing), fall back to the real tty
+    //fprintf(stdin);
+
+    if (!isatty(fileno(stdin))) {
+        FILE *tty = fopen("/dev/tty", "r");
+        if (tty) in = tty;
+    }
     //Read Input from STDIN
     char line[1024];
     while (fgets(line, sizeof(line), stdin)) {
+        printf(line);
         // Remove trailing newline
         line[strcspn(line, "\n")] = 0;
 

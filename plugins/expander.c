@@ -22,7 +22,6 @@ const char* plugin_transform(const char* input){
         j--;
     }
     result[j] ='\0';
-    free((void*)input);
     return result;
 }
 
