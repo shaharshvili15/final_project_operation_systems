@@ -23,7 +23,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/output/analyzer",
-      "args": ["10", "${workspaceFolder}/output/uppercaser","${workspaceFolder}/output/logger","${workspaceFolder}/output/rotator","${workspaceFolder}/output/uppercaser", "${workspaceFolder}/output/logger"],
+      "args": ["10", "${workspaceFolder}/output/uppercaser","${workspaceFolder}/output/rotator","${workspaceFolder}/output/flipper","${workspaceFolder}/output/expander", "${workspaceFolder}/output/typewriter","${workspaceFolder}/output/logger"],
       "cwd": "${workspaceFolder}",
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",

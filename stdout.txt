@@ -1,0 +1,15 @@
+Usage: ./analyzer <queue_size> <plugin1> <plugin2> ... <pluginN>
+Arguments:
+  queue_size    Maximum number of items in each plugin's queue
+  plugin1..N    Names of plugins to load (without .so extension)
+Available plugins:
+  logger        - Logs all strings that pass through
+  typewriter    - Simulates typewriter effect with delays
+  uppercaser    - Converts strings to uppercase
+  rotator       - Move every character to the right. Last character moves to the beginning.
+  flipper       - Reverses the order of characters
+  expander      - Expands each character with spaces
+Example:
+  ./analyzer 20 uppercaser rotator logger
+  echo 'hello' | ./analyzer 20 uppercaser rotator logger
+  echo '<END>' | ./analyzer 20 uppercaser rotator logger

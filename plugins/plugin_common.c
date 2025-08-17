@@ -42,42 +42,54 @@ const char* common_plugin_init(const char* (*process_function)(const char*),cons
     //3. set the initialized flag 
 }
 
-void* plugin_consumer_thread(void* arg){
+void* plugin_consumer_thread(void* arg) {
     plugin_context_t* ctx = (plugin_context_t*)arg;
-    while(1){
+
+    while (1) {
         char* result = consumer_producer_get(ctx->queue);
-        if(result == NULL){ //CHECK IF GOT NULL
+        if (result == NULL) {
             break;
         }
+
         char msg[256];
         snprintf(msg, sizeof(msg), "got item: %s", result);
         log_info(ctx, msg);
-        if(strcmp(result,"<END>") == 0){ //CHECK IF GOT <END> AND NEED TO FINISH
+
+        // Control message check
+        if (strcmp(result, "<END>") == 0) {
             if (ctx->next_place_work != NULL) {
-                ctx->next_place_work(strdup("<END>"));
+                ctx->next_place_work(strdup("<END>")); // <-- no strdup here!
             }
-            free(result);
+            free(result); // free our queue copy
             consumer_producer_signal_finished(ctx->queue);
             break;
         }
+
+        // Process normally
         const char* transformedText = ctx->process_function(result);
         snprintf(msg, sizeof(msg), "transformed result: %s", transformedText);
         log_info(ctx, msg);
-        if(ctx->next_place_work != NULL){
+
+        if (ctx->next_place_work != NULL) {
             snprintf(msg, sizeof(msg), "forwarding: %s", transformedText);
             log_info(ctx, msg);
-            ctx->next_place_work(transformedText);
-        }
-        else{
+            ctx->next_place_work(strdup(transformedText));
+        } else {
             log_info(ctx, "no next plugin — freeing output");
-            free((void*)transformedText);
+            // Free only if this is dynamically allocated text
+            if (strcmp(transformedText, "<END>") != 0) {
+                free((void*)transformedText);
+            }
         }
-        free(result);
+
+        free(result); // free our queue copy
     }
+
     log_info(ctx, "plugin thread finished");
     ctx->finished = 1;
-    return NULL; 
+    return NULL;
 }
+
 
 void log_error(plugin_context_t* context, const char* message) {
     fprintf(stderr, "%s[ERROR][%s] - %s%s\n", RED, context->name, message, NC);
@@ -85,8 +97,8 @@ void log_error(plugin_context_t* context, const char* message) {
 }
 
 void log_info(plugin_context_t* context, const char* message) {
-    printf("%s[INFO][%s] - %s%s\n", GREEN, context->name, message, NC);
-    fflush(stdout);
+    //printf("%s[INFO][%s] - %s%s\n", GREEN, context->name, message, NC);
+    //fflush(stdout);
 }
 
 const char* plugin_get_name(void){
@@ -126,7 +138,7 @@ const char* plugin_fini(void) {
     // Signal that no more items will be added
     consumer_producer_signal_finished(context.queue);
     // Wait for the consumer thread to finish
-    pthread_join(context.consumer_thread, NULL);
+    //pthread_join(context.consumer_thread, NULL);
     // Clean up the queue and free memory
     consumer_producer_destroy(context.queue);
     free(context.queue);

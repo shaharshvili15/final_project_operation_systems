@@ -7,7 +7,7 @@ const char* plugin_transform(const char* input) {
     if (input == NULL) {
         return NULL;
     }
-
+    printf("%s","[typewriter] ");
     for (int i = 0; input[i] != '\0'; i++) {
         printf("%c", input[i]);
         fflush(stdout);

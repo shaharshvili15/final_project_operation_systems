@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <link.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -39,7 +41,6 @@ void print_helper(){
 
 }
 int main(int argc, char* argv[]){
-    printf("hi0");
     if(argc < 2){
         fprintf(stderr, "No arguments were send\n");
         print_helper();
@@ -56,31 +57,41 @@ int main(int argc, char* argv[]){
     //construct the filename by appending .so
     for(int i = 2; i<argc; i++){
         char fileName[256];
-        snprintf(fileName, sizeof(fileName), "%s.so", argv[i]);
-        void* handle = dlopen(fileName,RTLD_NOW | RTLD_LOCAL);
+        snprintf(fileName, sizeof(fileName), "output/%s.so", argv[i]);
+        void* handle = dlmopen(LM_ID_NEWLM, fileName, RTLD_NOW | RTLD_LOCAL);
+        if(!handle){
+            print_helper();
+            fprintf(stderr, "Failed to load plugin %s: %s\n", argv[i], dlerror());
+            exit(1);
+        }
         plugin_init_func_t init = (plugin_init_func_t)dlsym(handle, "plugin_init");
         if(!init){
             fprintf(stderr,"plugin_init not found %s\n",dlerror());
+            print_helper();
             exit(1);
         }
         plugin_place_work_func_t placeWorkFunc = (plugin_place_work_func_t)dlsym(handle, "plugin_place_work");
         if(!placeWorkFunc){
             fprintf(stderr,"plugin_place_work not found %s\n",dlerror());
+            print_helper();
             exit(1);
         }
         plugin_attach_func_t attachFunc = (plugin_attach_func_t)dlsym(handle, "plugin_attach");
         if(!attachFunc){
             fprintf(stderr,"plugin_attach not found %s\n",dlerror());
+            print_helper();
             exit(1);
         }
         plugin_fini_func_t finiFunc = (plugin_fini_func_t)dlsym(handle, "plugin_fini");
         if(!finiFunc){
             fprintf(stderr,"plugin_fini not found %s\n",dlerror());
+            print_helper();
             exit(1);
         }
         plugin_wait_finished_func_t waitFinishedFunc = (plugin_wait_finished_func_t)dlsym(handle, "plugin_wait_finished");
         if(!waitFinishedFunc){
             fprintf(stderr,"plugin_wait_finished not found %s\n",dlerror());
+            print_helper();
             exit(1);
         }
         plugin_handle_t plugin;
@@ -97,7 +108,7 @@ int main(int argc, char* argv[]){
     for(int i =0; i<pluginCount; i++){
         const char* err = plugins[i].init(queueSize);
         if (err != NULL) {
-            fprintf(stderr, "Failed to initialize plugin %s: %s\n", plugins[i].name, err);
+            fprintf(stderr, "Failed to initialize plugin %s\n", plugins[i].name);
             // Optionally: cleanup and exit
             exit(2);
         }
@@ -108,16 +119,9 @@ int main(int argc, char* argv[]){
     }
     FILE *in = stdin;
     // If stdin is *not* a terminal (e.g., VS Code launch gave you nothing), fall back to the real tty
-    //fprintf(stdin);
-
-    if (!isatty(fileno(stdin))) {
-        FILE *tty = fopen("/dev/tty", "r");
-        if (tty) in = tty;
-    }
     //Read Input from STDIN
     char line[1024];
     while (fgets(line, sizeof(line), stdin)) {
-        printf(line);
         // Remove trailing newline
         line[strcspn(line, "\n")] = 0;
 
@@ -133,7 +137,7 @@ int main(int argc, char* argv[]){
     for (int i = 0; i < pluginCount; i++) {
         const char* err = plugins[i].wait_finished();
         if (err != NULL) {
-            fprintf(stderr, "Error waiting for plugin %s: %s\n", plugins[i].name, err);
+            fprintf(stderr, "Error waiting for plugin %s\n", plugins[i].name);
         }
     }
     for (int i = 0; i < pluginCount; i++) {
