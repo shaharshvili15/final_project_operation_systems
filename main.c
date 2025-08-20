@@ -109,7 +109,6 @@ int main(int argc, char* argv[]){
         const char* err = plugins[i].init(queueSize);
         if (err != NULL) {
             fprintf(stderr, "Failed to initialize plugin %s\n", plugins[i].name);
-            // Optionally: cleanup and exit
             exit(2);
         }
     }
