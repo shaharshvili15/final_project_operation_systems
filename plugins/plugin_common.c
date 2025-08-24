@@ -55,17 +55,15 @@ void* plugin_consumer_thread(void* arg) {
         snprintf(msg, sizeof(msg), "got item: %s", result);
         log_info(ctx, msg);
 
-        // Control message check
         if (strcmp(result, "<END>") == 0) {
             if (ctx->next_place_work != NULL) {
-                ctx->next_place_work(strdup("<END>")); // <-- no strdup here!
+                ctx->next_place_work(strdup("<END>"));
             }
-            free(result); // free our queue copy
+            free(result);
             consumer_producer_signal_finished(ctx->queue);
             break;
         }
 
-        // Process normally
         const char* transformedText = ctx->process_function(result);
         snprintf(msg, sizeof(msg), "transformed result: %s", transformedText);
         log_info(ctx, msg);
@@ -76,13 +74,12 @@ void* plugin_consumer_thread(void* arg) {
             ctx->next_place_work(strdup(transformedText));
         } else {
             log_info(ctx, "no next plugin — freeing output");
-            // Free only if this is dynamically allocated text
             if (strcmp(transformedText, "<END>") != 0) {
                 free((void*)transformedText);
             }
         }
 
-        free(result); // free our queue copy
+        free(result);
     }
 
     log_info(ctx, "plugin thread finished");

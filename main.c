@@ -41,7 +41,7 @@ void print_helper(){
 
 }
 int main(int argc, char* argv[]){
-    if(argc < 2){
+    if(argc <= 2){
         fprintf(stderr, "No arguments were send\n");
         print_helper();
         exit(1);

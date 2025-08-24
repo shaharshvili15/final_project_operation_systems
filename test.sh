@@ -298,4 +298,51 @@ else
   print_error "large queue size should be accepted (rc=$RC)"
 fi
 
+# 22) case sensitive Uppercaser
+set +e
+echo -e "ok\n<END>" | ./output/analyzer 10 Uppercaser logger >/dev/null 2>&1
+RC=$?
+set -e
+if [ $RC -ne 0 ]; then
+  print_status "plugin name is case-sensitive: 'Uppercaser' fails as expected"
+else
+  print_error "case-insensitive load detected (or bug): 'Uppercaser' unexpectedly succeeded"
+  exit 1
+fi
+
+
+require_valgrind() {
+  if ! command -v valgrind >/dev/null 2>&1; then
+    echo "⚠ valgrind not found; skipping valgrind tests"
+    return 1
+  fi
+  return 0
+}
+
+build_failinit_so() {
+  mkdir -p output
+  gcc -shared -fPIC -O2 -x c -o output/failinit.so - <<'EOF'
+#include <stddef.h>
+const char* plugin_init(const char* name, int queue_size) {
+    (void)name; (void)queue_size;
+    return "failed to initialize plugin: failinit";
+}
+const char* plugin_name(void) { return "failinit"; }
+void plugin_place_work(char* s) { (void)s; }
+void plugin_shutdown(void) {}
+EOF
+}
+
+build_failinit_so
+set +e
+printf "<END>\n" | ./output/analyzer 10 failinit logger >/dev/null 2>&1
+RC=$?
+set -e
+if [ $RC -ne 0 ]; then
+  print_status "plugin init error propagates → non-zero exit"
+else
+  print_error "plugin with failing init should not run but exited 0"
+  exit 1
+fi
+
 echo "All tests passed ✔"
